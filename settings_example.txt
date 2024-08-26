@@ -1,0 +1,21 @@
+underneath replacements: below you can add any automatic replacements that should happen for the specified column
+each line should contain the heading, followed by a colon and then comma separated pairs of "old" = "replacement"
+
+due date additional days: 7
+
+replacements:
+*Description: "NF2F" = "Non Face to Face Supports (NF2F)", "TRAN" = "Provider Travel (TRAN)", "delivered on " = "delivered", "REPW" = "Report Writing (REPW)", "Low Cost AT - Vision Related AT 03_220300911_0113_1_1 delivered on" = "Equipment Supplied Low Cost AT - Vision Related AT 03_220300911_0113_1_1", "Assistance Dog (Including Dog Guide) 05_900101111_0130_1_2 delivered on" = "Supplied Assistance Dog (Including Dog Guide) 05_900101111_0130_1_2"
+end:
+
+appendages:
+*Description: "01_661_0128_1_3" = "Claim Type Direct Service", "01_741_0128_1_3" = "Claim Type Direct Service","15_056_0128_1_3" = "Claim Type Direct Service","15_617_0128_1_3" = "Claim Type Direct Service","15_618_0128_1_3" = "Claim Type Direct Service", "15_005_0118_1_3" = "Claim Type Direct Service"
+end:
+
+
+underneath sort order: below, list the headings which you would like to sort by, each column should appear on a new line
+note: during processing DescDate and DescDateTimeStamp are created and removed to assist with ordering of *Description
+
+sort order:
+*ContactName: asc
+DescDateTimeStamp: desc
+end:
