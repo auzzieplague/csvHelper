@@ -26,8 +26,6 @@ private:
     }
 
 public:
-
-
     std::vector<std::string> splitLineAndReplaceCommas(const std::string &line) {
         std::vector<std::string> tokens;
         std::string token;
@@ -73,7 +71,7 @@ public:
         std::string line;
 
         if (!file.is_open()) {
-            std::cerr << "Unable to open file: " << filePath << std::endl;
+            std::cerr << std::endl << "Unable to open file: " << filePath << std::endl;
             return this;
         }
 
@@ -110,7 +108,6 @@ public:
         return this;
     }
 
-
     [[nodiscard]] const std::vector<std::map<std::string, std::string> > &getCsvData() const {
         return mCsvData;
     }
@@ -119,12 +116,13 @@ public:
         return mHeadings;
     }
 
-    CSVReader &writeCsv(const std::string &filePath) const { // NOLINT(*-use-nodiscard)
+    CSVReader &writeCsv(const std::string &filePath) const {
+        // NOLINT(*-use-nodiscard)
         // NOLINT(*-use-nodiscard)
         std::ofstream file(filePath);
 
         if (!file.is_open()) {
-            std::cerr << "Unable to open file: " << filePath << std::endl;
+            std::cerr << std::endl << "Unable to open file: " << filePath << std::endl;
             return const_cast<CSVReader &>(*this);
         }
 
@@ -174,7 +172,7 @@ public:
         auto descriptionIdx = this->getHeadingIndexByName("*Description");
 
         if (descriptionIdx == -1) {
-            std::cerr << "Description column not found!" << std::endl;
+            std::cerr << std::endl << "Description column not found!" << std::endl;
             return;
         }
 
@@ -206,14 +204,14 @@ public:
             ss >> std::get_time(&tm, "%d/%m/%y"); // Parse the date string into tm struct
 
             if (ss.fail()) {
-                std::cerr << "Failed to parse date: " << date << std::endl;
+                std::cerr << std::endl << "Failed to parse date: " << date << std::endl;
                 row["DescDateTimeStamp"] = "0"; // Use "0" to indicate an invalid timestamp
                 continue;
             }
 
             time_t timeStamp = mktime(&tm);
             if (timeStamp == -1) {
-                std::cerr << "Failed to convert date to timestamp: " << date << std::endl;
+                std::cerr << std::endl << "Failed to convert date to timestamp: " << date << std::endl;
                 row["DescDateTimeStamp"] = "0"; // Use "0" to indicate an invalid timestamp
             } else {
                 row["DescDateTimeStamp"] = std::to_string(timeStamp);
@@ -223,17 +221,12 @@ public:
 
     void doColumnReplacements() {
         std::ifstream settingsFile("settings.txt");
-        if (!settingsFile.is_open()) {
-            std::cerr << "Failed to open settings.txt" << std::endl;
-            return;
-        }
-
         std::map<std::string, std::map<std::string, std::string> > replacements;
         std::string line;
         bool replacementsSectionFound = false;
 
         // Define the regex pattern as a string
-        std::string pattern = "\"([^\"]+)\"\\s*=\\s*\"([^\"]+)\"";
+        std::string pattern = "\"([^\"]*)\"\\s*=\\s*\"([^\"]*)\"";
         std::regex pairRegex(pattern);
 
         // Read and process settings.txt
@@ -264,10 +257,10 @@ public:
 
             auto headingIdx = this->getHeadingIndexByName(heading);
             if (headingIdx == -1) {
-                std::cerr << std::endl << "Warning: Heading '" << heading << "' not found in CSV. Skipping..." <<
-                        std::endl;
+                std::cerr << "Warning: Heading '" << heading << "' not found in CSV. Skipping..." << std::endl;
                 continue;
             }
+
             // Parse the CSV list of replacements
             std::map<std::string, std::string> replacementMap;
             std::sregex_iterator iter(replacementsStr.begin(), replacementsStr.end(), pairRegex);
@@ -313,13 +306,9 @@ public:
         }
     }
 
+
     void applySorting() {
         std::ifstream settingsFile("settings.txt");
-        if (!settingsFile.is_open()) {
-            std::cerr << "Failed to open settings.txt" << std::endl;
-            return;
-        }
-
         std::vector<std::pair<std::string, std::string> > sortOrder;
         std::string line;
         bool sortOrderSectionFound = false;
@@ -355,7 +344,7 @@ public:
         settingsFile.close();
 
         if (sortOrder.empty()) {
-            std::cerr << "No sort order specified in settings.txt" << std::endl;
+            std::cerr << std::endl << "No sort order specified in settings.txt" << std::endl;
             return;
         }
 
@@ -369,7 +358,8 @@ public:
             auto headingIdx = this->getHeadingIndexByName(heading);
 
             if (headingIdx == -1) {
-                std::cerr << "Warning: Heading '" << heading << "' not found in CSV. Skipping..." << std::endl;
+                std::cerr << std::endl << "Warning: Heading '" << heading << "' not found in CSV. Skipping..." <<
+                        std::endl;
                 continue;
             }
 
@@ -414,12 +404,12 @@ public:
         auto descriptionIdx = this->getHeadingIndexByName("*Description");
 
         if (descriptionIdx == -1) {
-            std::cerr << "Description column not found!" << std::endl;
+            std::cerr << std::endl << "Description column not found!" << std::endl;
             return;
         }
 
         // Iterate through each row to modify *Description
-        for (auto &row : this->mCsvData) {
+        for (auto &row: this->mCsvData) {
             if (descDateIdx != -1) {
                 std::string descDate = row["DescDate"];
                 std::string &description = row["*Description"];
@@ -445,7 +435,7 @@ public:
         }
 
         // Also remove the columns from the data in each row
-        for (auto &row : this->mCsvData) {
+        for (auto &row: this->mCsvData) {
             if (descDateIdx != -1) {
                 row.erase("DescDate");
             }
@@ -460,10 +450,6 @@ public:
     void updateDueDate() {
         // Open settings.txt to find the "due date additional days:" line
         std::ifstream settingsFile("settings.txt");
-        if (!settingsFile.is_open()) {
-            std::cerr << "Failed to open settings.txt" << std::endl;
-            return;
-        }
 
         int daysToAdd = 0;
         std::string line;
@@ -472,7 +458,7 @@ public:
         while (std::getline(settingsFile, line)) {
             if (line.find("due date additional days:") != std::string::npos) {
                 // Extract the number after the colon
-                std::string value = line.substr(line.find(":") + 1);
+                std::string value = line.substr(line.find(':') + 1);
                 daysToAdd = std::stoi(value);
                 break;
             }
@@ -481,28 +467,29 @@ public:
         settingsFile.close();
 
         if (daysToAdd == 0) {
-            std::cerr << "No days to add specified or value is 0. Skipping due date update." << std::endl;
+            std::cerr << std::endl << "No days to add specified or value is 0. Skipping due date update." << std::endl;
             return;
         }
 
         // Update the "*DueDate" column
         auto dueDateIdx = this->getHeadingIndexByName("*DueDate");
         if (dueDateIdx == -1) {
-            std::cerr << "DueDate column not found in CSV. Skipping..." << std::endl;
+            std::cerr << std::endl << "DueDate column not found in CSV. Skipping..." << std::endl;
             return;
         }
 
-        for (auto& row : this->mCsvData) {
+        for (auto &row: this->mCsvData) {
             std::string dueDateStr = row["*DueDate"];
             std::tm dueDateTm = stringToDate(dueDateStr, "%d/%m/%Y");
 
             // Add the specified number of days to the due date
-            std::chrono::system_clock::time_point dueDateTp = std::chrono::system_clock::from_time_t(std::mktime(&dueDateTm));
+            std::chrono::system_clock::time_point dueDateTp = std::chrono::system_clock::from_time_t(
+                std::mktime(&dueDateTm));
             dueDateTp += std::chrono::hours(24 * daysToAdd);
 
             // Convert back to string and update the row
             std::time_t newTime = std::chrono::system_clock::to_time_t(dueDateTp);
-            std::tm* newTm = std::localtime(&newTime);
+            std::tm *newTm = std::localtime(&newTime);
             row["*DueDate"] = dateToString(*newTm, "%d/%m/%Y");
         }
 
@@ -524,86 +511,97 @@ public:
         return ss.str();
     }
 
-  void addAppendages() {
-    std::ifstream settingsFile("settings.txt");
-    if (!settingsFile.is_open()) {
-        std::cerr << "Failed to open settings.txt" << std::endl;
-        return;
-    }
+    void addAppendages() {
+        std::ifstream settingsFile("settings.txt");
 
-    std::map<std::string, std::vector<std::pair<std::string, std::string>>> appendagesMap;
-    std::string line;
-    bool appendagesSectionFound = false;
+        std::map<std::string, std::vector<std::pair<std::string, std::string> > > appendagesMap;
+        std::string line;
+        bool appendagesSectionFound = false;
 
-    // Read and process settings.txt until "appendages:" is found
-    while (std::getline(settingsFile, line)) {
-        if (line.empty()) {
-            continue; // Skip empty lines
-        }
-
-        if (!appendagesSectionFound) {
-            if (line == "appendages:") {
-                appendagesSectionFound = true;
+        // Read and process settings.txt until "appendages:" is found
+        while (std::getline(settingsFile, line)) {
+            if (line.empty()) {
+                continue; // Skip empty lines
             }
-            continue; // Skip lines until "appendages:" is found
-        }
 
-        // End of appendages section
-        if (line == "end:") {
-            break;
-        }
-
-        // Parse the line into column name and key-value pairs
-        std::regex lineRegex(R"(([^:]+):(.+))");
-        std::smatch lineMatch;
-        if (std::regex_match(line, lineMatch, lineRegex)) {
-            std::string columnName = lineMatch[1].str();
-            std::string keyValues = lineMatch[2].str();
-
-            std::string pattern = "\"([^\"]+)\"\\s*=\\s*\"([^\"]+)\"";
-            std::regex pairRegex(pattern);
-
-            // Regex to match individual key-value pairs
-            auto pairBegin = std::sregex_iterator(keyValues.begin(), keyValues.end(), pairRegex);
-            auto pairEnd = std::sregex_iterator();
-
-            for (std::sregex_iterator i = pairBegin; i != pairEnd; ++i) {
-                std::smatch match = *i;
-                std::string key = match[1].str();
-                std::string value = match[2].str();
-
-                appendagesMap[columnName].emplace_back(key, value);
+            if (!appendagesSectionFound) {
+                if (line == "appendages:") {
+                    appendagesSectionFound = true;
+                }
+                continue; // Skip lines until "appendages:" is found
             }
-        } else {
-            std::cerr << "Invalid appendages line format: " << line << std::endl;
+
+            // End of appendages section
+            if (line == "end:") {
+                break;
+            }
+
+            // Parse the line into column name and key-value pairs
+            std::regex lineRegex(R"(([^:]+):(.+))");
+            std::smatch lineMatch;
+            if (std::regex_match(line, lineMatch, lineRegex)) {
+                std::string columnName = lineMatch[1].str();
+                std::string keyValues = lineMatch[2].str();
+
+                std::string pattern = "\"([^\"]+)\"\\s*=\\s*\"([^\"]+)\"";
+                std::regex pairRegex(pattern);
+
+                // Regex to match individual key-value pairs
+                auto pairBegin = std::sregex_iterator(keyValues.begin(), keyValues.end(), pairRegex);
+                auto pairEnd = std::sregex_iterator();
+
+                for (std::sregex_iterator i = pairBegin; i != pairEnd; ++i) {
+                    std::smatch match = *i;
+                    std::string key = match[1].str();
+                    std::string value = match[2].str();
+
+                    appendagesMap[columnName].emplace_back(key, value);
+                }
+            } else {
+                std::cerr << std::endl << "Invalid appendages line format: " << line << std::endl;
+            }
         }
-    }
 
-    settingsFile.close();
+        settingsFile.close();
 
-    // Process each row in the CSV data
-    for (auto& row : this->mCsvData) {
-        for (const auto& appendage : appendagesMap) {
-            const std::string& columnName = appendage.first;
+        // Process each row in the CSV data
+        for (auto &row: this->mCsvData) {
+            for (const auto &appendage: appendagesMap) {
+                const std::string &columnName = appendage.first;
 
-            // Check if the specified column exists and doesn't contain "Claim Type"
-            if (row.find(columnName) != row.end() && row[columnName].find("Claim Type") == std::string::npos) {
-                for (const auto& pair : appendage.second) {
-                    const std::string& key = pair.first;
-                    const std::string& value = pair.second;
+                // Check if the specified column exists and doesn't contain "Claim Type"
+                if (row.find(columnName) != row.end() && row[columnName].find("Claim Type") == std::string::npos) {
+                    for (const auto &pair: appendage.second) {
+                        const std::string &key = pair.first;
+                        const std::string &value = pair.second;
 
-                    // If the column contains the key, append the value
-                    if (row[columnName].find(key) != std::string::npos) {
-                        row[columnName] += " " + value;
+                        // If the column contains the key, append the value
+                        if (row[columnName].find(key) != std::string::npos) {
+                            row[columnName] += " " + value;
+                        }
                     }
                 }
             }
         }
     }
 
-}
 
+    std::string getNewFileNamePostfix() {
+        std::ifstream settingsFile("settings.txt");
+        std::string line;
+        // Look for the "days to add to due date:" line
+        while (std::getline(settingsFile, line)) {
+            if (line.find("new file name postfix:") != std::string::npos) {
+                std::string value = line.substr(line.find(':') + 1);
+                settingsFile.close();
+                trim (value);
+                return value;
+            }
+        }
 
+        settingsFile.close();
+        return "_new";
+    }
 };
 
 
@@ -626,6 +624,7 @@ void pushMessage(std::vector<std::string> lines) {
     std::cin.ignore();
 }
 
+
 int main(int argc, char *argv[]) {
     if (argc < 2) {
         pushMessage({
@@ -638,6 +637,9 @@ int main(int argc, char *argv[]) {
     }
 
     std::string inputFilePath = argv[1];
+
+    // std::string inputFilePath = "test.csv"; // for debugging
+
     std::filesystem::path filePath(inputFilePath);
 
     if (!std::filesystem::exists(filePath)) {
@@ -648,12 +650,23 @@ int main(int argc, char *argv[]) {
         });
     }
 
-    // Create new file path by appending "_new" before the file extension
-    std::filesystem::path outputFilePath = filePath;
-    outputFilePath.replace_filename(filePath.stem().string() + "_new" + filePath.extension().string());
+    std::ifstream settingsFile("settings.txt");
+    if (!settingsFile.is_open()) {
+        pushMessage({
+            "Oh Dear,",
+            "", "", "",
+            "the settings file appears to be missing"
+        });
+        exit(0);
+    }
 
-    // Create and process the CSVReader object
     auto reader = new CSVReader();
+    std::string postFix = reader->getNewFileNamePostfix();
+
+    // Create new file path by appending a postfix before the file extension
+    std::filesystem::path outputFilePath = filePath;
+    outputFilePath.replace_filename(filePath.stem().string() + postFix + filePath.extension().string());
+
     reader->readCsv(inputFilePath);
 
     // Add temporary columns explicity formatting data as dd/mm/yy and UTS to assist with sorting
