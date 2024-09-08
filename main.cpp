@@ -10,6 +10,8 @@
 
 class CSVReader {
 private:
+    std::string exePath;
+
     std::vector<std::string> mHeadings;
     std::vector<std::map<std::string, std::string> > mCsvData;
 
@@ -220,7 +222,7 @@ public:
     }
 
     void doColumnReplacements() {
-        std::ifstream settingsFile("settings.txt");
+        std::ifstream settingsFile = this->getSettingsFile();
         std::map<std::string, std::map<std::string, std::string> > replacements;
         std::string line;
         bool replacementsSectionFound = false;
@@ -308,7 +310,7 @@ public:
 
 
     void applySorting() {
-        std::ifstream settingsFile("settings.txt");
+        std::ifstream settingsFile = this->getSettingsFile();
         std::vector<std::pair<std::string, std::string> > sortOrder;
         std::string line;
         bool sortOrderSectionFound = false;
@@ -449,7 +451,7 @@ public:
 
     void updateDueDate() {
         // Open settings.txt to find the "due date additional days:" line
-        std::ifstream settingsFile("settings.txt");
+        std::ifstream settingsFile = this->getSettingsFile();
 
         int daysToAdd = 0;
         std::string line;
@@ -512,7 +514,7 @@ public:
     }
 
     void addAppendages() {
-        std::ifstream settingsFile("settings.txt");
+        std::ifstream settingsFile = this->getSettingsFile();
 
         std::map<std::string, std::vector<std::pair<std::string, std::string> > > appendagesMap;
         std::string line;
@@ -585,9 +587,8 @@ public:
         }
     }
 
-
     std::string getNewFileNamePostfix() {
-        std::ifstream settingsFile("settings.txt");
+        std::ifstream settingsFile = this->getSettingsFile();
         std::string line;
         // Look for the "days to add to due date:" line
         while (std::getline(settingsFile, line)) {
@@ -602,6 +603,17 @@ public:
         settingsFile.close();
         return "_new";
     }
+
+    void setExePath(char * str) {
+        std::filesystem::path exePath = std::filesystem::absolute(str);
+        this->exePath =  exePath.parent_path().string();
+    }
+
+    std::ifstream getSettingsFile() const {
+        std::filesystem::path settingsFilePath = std::filesystem::path(this->exePath) / "settings.txt";
+        std::ifstream settingsFile(settingsFilePath);
+        return settingsFile;
+    };
 };
 
 
@@ -638,8 +650,6 @@ int main(int argc, char *argv[]) {
 
     std::string inputFilePath = argv[1];
 
-    // std::string inputFilePath = "test.csv"; // for debugging
-
     std::filesystem::path filePath(inputFilePath);
 
     if (!std::filesystem::exists(filePath)) {
@@ -650,8 +660,12 @@ int main(int argc, char *argv[]) {
         });
     }
 
-    std::ifstream settingsFile("settings.txt");
-    if (!settingsFile.is_open()) {
+    auto reader = new CSVReader();
+
+    reader->setExePath(argv[0]);
+
+    std::ifstream file = reader->getSettingsFile();
+    if (!file.is_open()) {
         pushMessage({
             "Oh Dear,",
             "", "", "",
@@ -660,7 +674,6 @@ int main(int argc, char *argv[]) {
         exit(0);
     }
 
-    auto reader = new CSVReader();
     std::string postFix = reader->getNewFileNamePostfix();
 
     // Create new file path by appending a postfix before the file extension
